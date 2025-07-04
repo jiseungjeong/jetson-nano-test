@@ -76,6 +76,9 @@ try:
         gold_number = extract_number(gold_answer)
         is_correct = pred_answer == gold_number
 
+        total_tokens = input_token_len + output_token_len
+        tokens_per_second = total_tokens / latency if latency > 0 else 0
+
         results.append({
             "question": question,
             "gold_answer": gold_answer,
@@ -85,6 +88,7 @@ try:
             "input_token_len": input_token_len,
             "output_token_len": output_token_len,
             "latency": latency,
+            "tokens_per_second": tokens_per_second,
             "is_correct": is_correct
         })
 
