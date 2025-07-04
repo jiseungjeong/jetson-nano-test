@@ -7,7 +7,7 @@ import re
 
 MODEL_PATH = "/home/jiseung/Downloads/tinyllama-1.1b-chat-v1.0.Q3_K_M.gguf"
 llm = None
-llm = Llama(model_path = MODEL_PATH, n_ctx=1024, n_threads=4, n_gpu_layers=0,verbose=False)
+llm = Llama(model_path = MODEL_PATH, n_ctx=2048, n_threads=4, n_gpu_layers=0,verbose=False)
 
 gsm8k = load_dataset("gsm8k", "main")["test"]
 
@@ -16,11 +16,25 @@ results = []
 def extract_number(text):
     match = re.search(r"###\s*\[?([-+]?\d*\.?\d+)\]?", text)
     if match:
-        return float(match.group(1))
-
+        try:
+            return float(match.group(1))
+        except ValueError:
+            pass
+    lines = text.strip().split("\n")
+    for line in reversed(lines[-3:]):
+        numbers = re.findall(r"[-+]?\d*\.?\d+", line)
+        if numbers:
+            try:
+                return float(numbers[-1])
+            except ValueError:
+                pass
     numbers = re.findall(r"[-+]?\d*\.?\d+", text)
     if numbers:
-        return float(numbers[-1])
+        try:
+            return float(numbers[-1])
+        except ValueError:
+            pass
+
     return None
 
 N = 10
@@ -40,7 +54,7 @@ Please write the final answer after '###' like this:
     input_token_len = len(input_tokens)
 
     start_time = time.perf_counter()
-    output = llm(prompt, max_tokens=128, temperature=0.0)
+    output = llm(prompt, max_tokens=256, temperature=0.0)
     end_time = time.perf_counter()
 
     latency = end_time - start_time
